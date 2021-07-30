@@ -16,9 +16,8 @@ const userPost = async (req = request, res = response) => {
      * se convierte la respuesta en un JSONArray y se compara con []
      */
     if (respuesta.rows[0].rest != 1) {
-      return res
-        .status(404)
-        .send({ code: -1, msg: 'No se pudo crear el usuario' });
+      respuesta_error = respuesta.rows;
+      return res.status(404).send({ respuesta_error });
     } else {
       insert = respuesta.rows;
       res.status(200).json({ insert });

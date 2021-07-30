@@ -1,9 +1,12 @@
+------------------------SEQUENCES------------------------------
 CREATE SEQUENCE public.t_player_id_player_seq
     INCREMENT 1
     START 1
     MINVALUE 1
     MAXVALUE 2147483647
     CACHE 1;
+
+--------------------------------
 
 CREATE SEQUENCE public.t_team_id_team_seq
     INCREMENT 1
@@ -12,12 +15,28 @@ CREATE SEQUENCE public.t_team_id_team_seq
     MAXVALUE 2147483647
     CACHE 1;
 
+------------------------------
+
 CREATE SEQUENCE public.user_id_user_seq
     INCREMENT 1
     START 1
     MINVALUE 1
     MAXVALUE 2147483647
     CACHE 1;
+
+------------------------TABLES------------------------------
+
+
+CREATE TABLE public.t_team
+(
+    id_team integer NOT NULL DEFAULT nextval('t_team_id_team_seq'::regclass),
+    name character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    league character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    country character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT t_team_pkey PRIMARY KEY (id_team)
+)
+
+------------------------------
 
 CREATE TABLE public.t_player
 (
@@ -36,14 +55,7 @@ CREATE TABLE public.t_player
         NOT VALID
 )
 
-CREATE TABLE public.t_team
-(
-    id_team integer NOT NULL DEFAULT nextval('t_team_id_team_seq'::regclass),
-    name character varying(50) COLLATE pg_catalog."default" NOT NULL,
-    league character varying(50) COLLATE pg_catalog."default" NOT NULL,
-    country character varying(50) COLLATE pg_catalog."default" NOT NULL,
-    CONSTRAINT t_team_pkey PRIMARY KEY (id_team)
-)
+---------------------------------
 
 CREATE TABLE public.t_user
 (
@@ -53,6 +65,9 @@ CREATE TABLE public.t_user
     CONSTRAINT user_pkey PRIMARY KEY (id_user),
     CONSTRAINT unique_user_correo UNIQUE (email)
 )
+
+
+------------------------FUNCTIONS------------------------------
 
 
 CREATE OR REPLACE FUNCTION public.f_createt_player(
@@ -84,6 +99,8 @@ rest := 2;
  END;
 $BODY$;
 
+-----------------------------------------------------------------
+
 CREATE OR REPLACE FUNCTION public.f_createt_team(
 	s_name character varying,
 	s_league character varying,
@@ -110,6 +127,8 @@ rest := 2;
  END;
 $BODY$;
 
+-----------------------------------------------------------------------
+
 CREATE OR REPLACE FUNCTION public.f_createt_user(
 	s_email character varying,
 	s_password character varying,
@@ -134,6 +153,8 @@ GET STACKED DIAGNOSTICS respuesta = PG_EXCEPTION_DETAIL;
 rest := 2;
  END;
 $BODY$;
+
+--------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION public.f_deletet_player(
 	s_id_player numeric,
@@ -161,6 +182,8 @@ id_return numeric;
  RETURN;
  END;
 $BODY$;
+
+------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION public.f_deletet_team(
 	s_id_team numeric,
@@ -196,6 +219,8 @@ id_return numeric;
  END;
 $BODY$;
 
+--------------------------------------------------------------
+
 CREATE OR REPLACE FUNCTION public.f_read_email_user(
 	s_email character varying)
     RETURNS SETOF t_user
@@ -228,6 +253,8 @@ DECLARE
  END;
 $BODY$;
 
+-----------------------------------------------------------------
+
 CREATE OR REPLACE FUNCTION public.f_readt_team_id(
 	s_id_team numeric)
     RETURNS SETOF t_team
@@ -244,6 +271,8 @@ DECLARE
  END;
 $BODY$;
 
+----------------------------------------------------------
+
 CREATE OR REPLACE FUNCTION public.f_readt_user_id(
 	s_id_user numeric)
     RETURNS SETOF t_user
@@ -259,6 +288,8 @@ DECLARE
  SELECT * FROM t_user WHERE t_user.id_user = s_id_user;
  END;
 $BODY$;
+
+-----------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION public.f_updatet_player(
 	s_id_player numeric,
@@ -301,6 +332,8 @@ WHERE id_player = s_id_player;
  END;
 $BODY$;
 
+--------------------------------------------------------------
+
 CREATE OR REPLACE FUNCTION public.f_updatet_team(
 	s_id_team numeric,
 	s_name character varying,
@@ -335,3 +368,42 @@ WHERE id_team = s_id_team;
  RETURN;
  END;
 $BODY$;
+
+------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION public.f_search_query_player(
+	i_position character varying,
+	i_nacionality character varying,
+	i_team character varying)
+    RETURNS SETOF v_teamplayer
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
+DECLARE
+ BEGIN
+ RETURN QUERY
+	SELECT * FROM v_teamplayer WHERE (position_player LIKE '%' || i_position || '%'
+		OR nationality_player LIKE '%' || i_nacionality || '%' OR name_team LIKE '%' || i_team || '%');
+ END;
+$BODY$;
+
+------------------------------------------------------------
+
+CREATE OR REPLACE VIEW public.v_teamplayer
+AS
+SELECT pla.id_player,
+        pla.name as name_player,
+        pla.age as age_player,
+        pla.team_id,
+        te.name as name_team,
+        te.league as league_team,
+        te.country as country_team,
+        pla.squad_number as squad_number_player,
+        pla.position as position_player,
+        pla.nationality as nationality_player
+FROM t_player pla,
+        t_team te
+WHERE pla.team_id = te.id_team;

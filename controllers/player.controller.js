@@ -39,7 +39,7 @@ const playerGet = async (req = request, res = response) => {
     }
   } catch (error) {
     console.log(error);
-    throw new Error(`team.controller.js->f_readt_team()\n ${error}`);
+    throw new Error(`player.controller.js->f_readt_player()\n ${error}`);
   }
 };
 
@@ -123,25 +123,23 @@ const playerDelete = async (req = request, res = response) => {
 
 const playerSearch = async (req = request, res = response) => {
   try {
-    const { nationality, position } = req.query;
+    const { nationality, position, team } = req.query;
     let respuesta = await pool.query(
-      `SELECT * from f_search_query_player($1::character varying,$2::character varying)`,
-      [position, nationality]
+      `SELECT * from f_search_query_player($1::character varying,$2::character varying,$3::character varying)`,
+      [position, nationality, team]
     );
     /**Para verificar que el resultado de la consulta no arroja ningún registro
      * se convierte la respuesta en un JSONArray y se compara con []
      */
     if (JSON.stringify(respuesta.rows) === '[]') {
-      return res
-        .status(404)
-        .send({ code: -1, msg: 'No hay jugadores con ese ID' });
+      return res.status(404).send({ code: -1, msg: 'No hay jugadores' });
     } else {
       player = respuesta.rows;
       res.status(200).json({ code: 1, msg: 'Jugador', player });
     }
   } catch (error) {
     console.log(error);
-    throw new Error(`team.controller.js->f_readt_team()\n ${error}`);
+    throw new Error(`player.controller.js->f_search_query_player()\n ${error}`);
   }
 };
 module.exports = {

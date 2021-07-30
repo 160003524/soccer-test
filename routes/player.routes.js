@@ -47,7 +47,7 @@ router.post(
   playerPost
 );
 
-router.post('/search', playerSearch);
+router.post('/search', validarJWT, playerSearch);
 
 router.put(
   '/',
