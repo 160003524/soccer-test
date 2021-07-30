@@ -1,3 +1,8 @@
+---Author: Jefferson Andres Martinez Pena
+---To use this script from a database you need PostgreSQL locally or remotely,
+---then execute the sentences below and that's it, don't forget to put the .env variables.
+
+
 ------------------------SEQUENCES------------------------------
 CREATE SEQUENCE public.t_player_id_player_seq
     INCREMENT 1
